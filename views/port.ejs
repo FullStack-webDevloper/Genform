@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birth Registration Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { max-width: 600px; margin: 0 auto; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        .gender-options { margin-top: 5px; }
+        .gender-options input { margin-right: 10px; }
+        .form-section { margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .form-section h2 { margin-top: 0; }
+        .submit-button { margin-top: 20px; text-align: center; }
+        .submit-button input { padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; background-color: #4CAF50; color: white; cursor: pointer; }
+        .submit-button input:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <form action="/submit-form" method="POST">
+        <div class="form-section">
+            <h2>Child's Information</h2>
+            <label for="child-name">Name:</label>
+            <input type="text" id="child-name" name="child-name" required>
+            <label>Gender:</label>
+            <div class="gender-options">
+                <input type="radio" id="male" name="gender" value="male" required>
+                <label for="male">Male</label>
+                <input type="radio" id="female" name="gender" value="female" required>
+                <label for="female">Female</label>
+                <input type="radio" id="other" name="gender" value="other" required>
+                <label for="other">Other</label>
+            </div>
+            <label for="dob-numbers">Date of Birth (in Numbers):</label>
+            <input type="date" id="dob-numbers" name="dob-numbers" required>
+            <label for="dob-words">Date of Birth (in Words):</label>
+            <input type="text" id="dob-words" name="dob-words" required>
+            <label for="place-of-birth">Place of Birth:</label>
+            <input type="text" id="place-of-birth" name="place-of-birth" required>
+        </div>
+        <div class="form-section">
+            <h2>Mother's Information</h2>
+            <label for="mother-name">Name of the Mother:</label>
+            <input type="text" id="mother-name" name="mother-name" required>
+            <label for="mother-aadhaar">Mother's Aadhaar Number:</label>
+            <input type="text" id="mother-aadhaar" name="mother-aadhaar" required>
+        </div>
+        <div class="form-section">
+            <h2>Father's Information</h2>
+            <label for="father-name">Name of the Father:</label>
+            <input type="text" id="father-name" name="father-name" required>
+            <label for="father-aadhaar">Father's Aadhaar Number:</label>
+            <input type="text" id="father-aadhaar" name="father-aadhaar" required>
+        </div>
+        <div class="form-section">
+            <h2>Address Information</h2>
+            <label for="address-at-birth">Address of Parents at the Time of Birth of the Child:</label>
+            <input type="text" id="address-at-birth" name="address-at-birth" required>
+            <label for="permanent-address">Permanent Address of Parents:</label>
+            <input type="text" id="permanent-address" name="permanent-address" required>
+        </div>
+        <div class="form-section">
+            <h2>Registration Details</h2>
+            <label for="registration-number">Registration Number:</label>
+            <input type="text" id="registration-number" name="registration-number" required>
+            <label for="registration-date">Date of Registration:</label>
+            <input type="date" id="registration-date" name="registration-date" required>
+        </div>
+        <div class="submit-button">
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+</body>
+</html>

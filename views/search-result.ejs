@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <% if (files.length > 0) { %>
+        <ul>
+            <% files.forEach(file => { %>
+                <li>
+                    <a href="/file/<%= file.filename %>"><%= file.filename %></a>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No files found.</p>
+    <% } %>
+    <a href="/">Go back</a>
+</body>
+</html>
