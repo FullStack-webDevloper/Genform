@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const PDFDocument = require('pdfkit');
@@ -7,8 +8,11 @@ const QRCode = require('qrcode');
 const mongoose = require('mongoose');
 const multer = require('multer');
 
+
+
 // MongoDB connection setup
-mongoose.connect('mongodb://localhost:27017/pdfDatabase', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.ATLASDB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
 
 const pdfSchema = new mongoose.Schema({
     filename: String,
