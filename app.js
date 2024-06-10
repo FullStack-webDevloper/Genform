@@ -8,11 +8,19 @@ const QRCode = require('qrcode');
 const mongoose = require('mongoose');
 const multer = require('multer');
 
-
-
 // MongoDB connection setup
-mongoose.connect(process.env.ATLASDB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.ATLASDB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000 // Increase timeout to 30 seconds
+  }).then(() => {
+    console.log('Connected to MongoDB');
+  }).catch(err => {
+    console.error('Error connecting to MongoDB', err);
+  });
+   
 
+  
 
 const pdfSchema = new mongoose.Schema({
     filename: String,
@@ -45,7 +53,7 @@ app.get('/', (req, res) => {
 
 app.post('/submit-form', async (req, res) => {
     const formData = req.body;
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 50 });
 
     const filename = `birth_certificate_${Date.now()}.pdf`;
     const filePath = path.join(pdfDirectory, filename);
@@ -57,56 +65,126 @@ app.post('/submit-form', async (req, res) => {
     doc.font('Times-Roman');
 
     // Add the image to the top left side of the PDF
-    const logoPath = path.join(__dirname, 'i2.jpg');  // Ensure this path points to your image file
+    const logoPath = path.join(__dirname, 'i2.jpg');
     if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, 10, 10, { width: 50 });  // Adjust the width and position as needed
+        doc.image(logoPath, 10, 10, { width: 50 });
     }
-    const centerImagePath = path.join(__dirname, 'i1.jpg');  // Ensure this path points to your image file
+    
+    const centerImagePath = path.join(__dirname, 'i1.jpg');
     if (fs.existsSync(centerImagePath)) {
-        const centerImageWidth = 25;  // Adjust the width of the image as needed
+        const centerImageWidth = 25;
         const pageWidth = doc.page.width;
         const centerImageX = (pageWidth - centerImageWidth) / 2;
-        doc.image(centerImagePath, centerImageX, 50, { width: centerImageWidth });  // Adjust the y-position as needed
+        doc.image(centerImagePath, centerImageX, 10, { width: centerImageWidth });
     }
-    doc.fontSize(10).text('GOVERNMENT OF UTTAR PRADESH', { align: 'center' });
-    // Add the specified text at the top of the PDF
-    doc.fontSize(10).text('1969 12 / 17 2002 8/13', { align: 'center' });
-    doc.fontSize(10).text('(ISSUED UNDER SECTION 12/17 OF THE REGISTRATION OF BIRTHS & DEATHS ACT. 1969 AND RULE 8/13 OF THE PRADESH REGISTRATION OF BIRTHS & DEATHS RULES 2002)', { align: 'center' });
+    const centerImagePath1 = path.join(__dirname, 'i4.jpg');
+
+    if (fs.existsSync(centerImagePath1)) {
+        const centerImageWidth = 50; // Adjust the width as needed
+        const pageWidth = doc.page.width;
+        const pageHeight = doc.page.height; // Optionally, if you need to adjust y-coordinate
+    
+        const rightImageX = pageWidth - centerImageWidth - 10; // 10 is the margin from the right edge
+        const topImageY = 10; // 10 is the margin from the top edge
+    
+        doc.image(centerImagePath1, rightImageX, topImageY, { width: centerImageWidth});
+    }
+    
+
+    // Adding the headers and other information
+    doc.fontSize(7.5).text('GOVERNMENT OF UTTAR PRADESH', { align: 'center' ,color:'blue'});
+    doc.fontSize(7.5).text('1969 12 / 17 2002 8/13', { align: 'center' });
+    doc.fontSize(7.5).text('(ISSUED UNDER SECTION 12/17 OF THE REGISTRATION OF BIRTHS & DEATHS ACT. 1969 AND RULE 8/13 OF THE PRADESH REGISTRATION OF BIRTHS & DEATHS RULES 2002)', { align: 'center' });
     doc.moveDown(0.5);
-    doc.fontSize(10).text('IS TO CERTIFY THAT THE FOLLOWING INFORMATION HAS BEEN TAKEN FROM THE ORIGINAL RECORD OF BIRTH WHICH IS THE REGISTER FOR GRAMA PANCHAYAT CHANDPURPHERU OF TAHSIL\'BLOCK BIJNOR OF DISTRICT BIJNOR OF STATE/UNION TERRITORY UTTAR PRADESH. INDIA', { align: 'center' });
+    doc.fontSize(7.5).text('IS TO CERTIFY THAT THE FOLLOWING INFORMATION HAS BEEN TAKEN FROM THE ORIGINAL RECORD OF BIRTH WHICH IS THE REGISTER FOR GRAMA PANCHAYAT CHANDPURPHERU OF TAHSIL\'BLOCK BIJNOR OF DISTRICT BIJNOR OF STATE/UNION TERRITORY UTTAR PRADESH. INDIA', { align: 'center' });
+    doc.moveDown(0.5);
+    doc.fontSize(7.5).text('THIS IS TO CERTIFY THAT THE FOLLOWING INFORMATION HAS BEEN TAKEN FROM THE ORIGINAL RECORD OF BIRTH WHICH IS THE REGISTER FOR GRAMA PANCHAYAT CHANDPURPHERU OF TAHSIL/BLOCK BIJNOR OF DISTRICT BIJNOR OF STATE/UNION TERRITORY UTTAR PRADESH INDIA', { align: 'center' });
 
-    doc.moveDown(1);  // Add some space before the rest of the content
+    doc.moveDown(1);
+    doc.fontSize(14).text('Birth Certificate', { align: 'center' });
 
-    doc.fontSize(18).text('Birth Certificate', { align: 'center' });
+    doc.moveDown(3);
 
-    doc.fontSize(14).text(`Name: ${formData['child-name']}`);
-    doc.fontSize(14).text(`Sex: ${formData.gender}`);
-    doc.fontSize(14).text(`Date of Birth: ${formData['dob-numbers']} (${formData['dob-words']})`);
-    doc.fontSize(14).text(`Place of Birth: ${formData['place-of-birth']}`);
-    doc.fontSize(14).text(`Mother's Name: ${formData['mother-name']}`);
-    doc.fontSize(14).text(`Mother's Aadhaar No: ${formData['mother-aadhaar']}`);
-    doc.fontSize(14).text(`Father's Name: ${formData['father-name']}`);
-    doc.fontSize(14).text(`Father's Aadhaar No: ${formData['father-aadhaar']}`);
-    doc.fontSize(14).text(`Address of Parents at the Time of Birth: ${formData['address-at-birth']}`);
-    doc.fontSize(14).text(`Permanent Address of Parents: ${formData['permanent-address']}`);
-    doc.fontSize(14).text(`Registration Number: ${formData['registration-number']}`);
-    doc.fontSize(14).text(`Date of Registration: ${formData['registration-date']}`);
-    doc.fontSize(14).text(`Remarks (if any): ---`);
-    doc.fontSize(14).text(`Date of Issue: ${new Date().toLocaleDateString()}`);
-    doc.fontSize(14).text(`Issuing Authority: Registrar (Birth & Death)`);
-   
-    doc.fontSize(14).text(`UPDATED ON: ${new Date().toLocaleString()}`);
+    const leftMargin = 50;
+    const rightMargin = doc.page.width - 70;
+    let currentY = doc.y;
+
+    doc.fontSize(7.5);
+
+    // Define an array of data pairs: [leftText, rightText]
+    const dataPairs = [
+        [`NAME: ${formData['child-name']}`, `SEX: ${formData.gender}`],
+        [`DATE OF BIRTH: ${formData['dob-numbers']} (${formData['dob-words']})`, `PLACE OF BIRTH: ${formData['place-of-birth']}`],
+        [`NAME OF MOTHER: ${formData['mother-name']}`, `MOTHER'S AADHAAR NO: ${formData['mother-aadhaar']}`],
+        [`NAME OF FATHER: ${formData['father-name']}`, `FATHER'S AADHAAR NO: ${formData['father-aadhaar']}`],
+        [`ADDRESS OF PARENTS AT THE TIME OF BIRTH OF THE CHILD: ${formData['address-at-birth']}`, `PERMANENT ADDRESS OF PARENTS: ${formData['permanent-address']}`],
+        [`REGISTRATION NUMBER: ${formData['registration-number']}`, `DATE OF REGISTRATION: ${formData['registration-date']}`],
+        [`REMARKS (IF ANY): ---`, `Date of Issue: ${new Date().toLocaleDateString()}`],
+       
+        [``, `Issuing Authority: Registrar (Birth & Death)`] // Leave a blank space for alignment
+        
+    ];
+    // doc.fontSize(7.5).text(`Issuing Authority: Registrar (Birth & Death)`);
+    
+
+    dataPairs.forEach(pair => {
+        doc.text(pair[0], leftMargin, currentY, { align: 'left' });
+        doc.text(pair[1], rightMargin - doc.widthOfString(pair[1]), currentY, { align: 'right' });
+        currentY += Math.max(doc.heightOfString(pair[0]), doc.heightOfString(pair[1])) + 1.5; // Adjust vertical spacing
+    });
+
+    
+  
+    const centerImagePath2 = path.join(__dirname, 'i3.jpg');
+    if (fs.existsSync(centerImagePath2)) {
+        const centerImageWidth = 50; // Adjust the width as needed
+        const pageWidth = doc.page.width;
+        const pageHeight = doc.page.height;
+        const rightImageX = pageWidth - centerImageWidth - 90; // 10 is the margin from the right edge
+        const bottomImageY = pageHeight - 50 - 400; // 50 is the height of the image, 10 is the margin from the bottom edge
+        doc.image(centerImagePath2, rightImageX, bottomImageY, { width: centerImageWidth });
+    }
+    const centerImagePath3 = path.join(__dirname, 'i5.jpg');
+    if (fs.existsSync(centerImagePath3)) {
+        const centerImageWidth = 150; // Adjust the width as needed
+        const pageWidth = doc.page.width;
+        const pageHeight = doc.page.height;
+        const rightImageX = pageWidth - centerImageWidth - 50; // 10 is the margin from the right edge
+        const bottomImageY = pageHeight - 50 - 350; // 50 is the height of the image, 10 is the margin from the bottom edge
+        doc.image(centerImagePath3, rightImageX, bottomImageY, { width: centerImageWidth });
+    }
+
+
+    
+    
+    // doc.fontSize(7.5).text(`THIS IS A COMPUTER GENERATED CERTIFICATE WHICH CONTAINS FACSIMILE SIGNATURE OF THE ISSUING AUTHORITY. THE GOVT OF INDIA VIDE CIRCULAR NO. 1/12/2014-VS(CRS) DATED 27-JULY-2015 HAS APPROVED THIS CERTIFICATE AS A VALID LEGAL DOCUMENT FOR ALL OFFICIAL PUR;POSES.`, { align: 'bottom' })
+    // doc.fontSize(7.5).text(`UPDATED ON: ${new Date().toLocaleString()}`);
 
     // Generate QR code
     const qrData = `Name: ${formData['child-name']}\nSex: ${formData.gender}\nDate of Birth: ${formData['dob-numbers']} (${formData['dob-words']})\nPlace of Birth: ${formData['place-of-birth']}\nRegistration Number: ${formData['registration-number']}`;
     const qrCode = await QRCode.toDataURL(qrData);
 
     // Add QR code to the PDF
-    doc.image(qrCode, {
-        fit: [100, 100],
-        align: 'center',
-        valign: 'center'
-    });
+    const qrCodeX = doc.page.width - 600;
+const qrCodeY = doc.page.height - 250;
+const qrCodeWidth = 50;
+const qrCodeHeight = 50;
+
+// Calculate the position for the text to be above the QR code
+const textX = qrCodeX;
+const textY = qrCodeY - 10; // Adjust this value as needed to provide space between the text and QR code
+
+// Draw the text
+doc.fontSize(7.5).text(`UPDATED ON: ${new Date().toLocaleString()}`, textX, textY);
+
+// Draw the QR code
+doc.image(qrCode, qrCodeX, qrCodeY, { fit: [qrCodeWidth, qrCodeHeight], align: 'center', valign: 'center' });
+
+
+// Draw the text
+const text = `THIS IS A COMPUTER GENERATED CERTIFICATE WHICH CONTAINS FACSIMILE SIGNATURE OF THE ISSUING AUTHORITY. THE GOVT OF INDIA VIDE CIRCULAR NO. 1/12/2014-VS(CRS) DATED 27-JULY-2015 HAS APPROVED THIS CERTIFICATE AS A VALID LEGAL DOCUMENT FOR ALL OFFICIAL PURPOSES.`;
+doc.fontSize(7.5).text(text, 2, textY+60, { align: 'center', width: doc.page.width });
+
 
     doc.end();
 
@@ -118,6 +196,7 @@ app.post('/submit-form', async (req, res) => {
             filename: filename,
             name: formData['child-name'],
             dob: formData['dob-numbers']
+
         });
 
         await newPDF.save();
